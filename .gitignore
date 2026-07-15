@@ -214,5 +214,19 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+# =====================================
+# Project Data
+# =====================================
+
+# Ignore raw datasets
+data/raw/*
+
+# Ignore KTDB source files
+data/ktdb/*
+
+# Keep empty folder structure
+!data/raw/.gitkeep
+!data/ktdb/.gitkeep
+
 # Streamlit
 .streamlit/secrets.toml
