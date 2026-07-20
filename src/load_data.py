@@ -48,6 +48,7 @@ def load_bms_data() -> dict[str, pd.DataFrame]:
 
 
 
+
 def load_ktdb_data():
 
     node = gpd.read_file(KTDB_NODE)
@@ -59,6 +60,15 @@ def load_ktdb_data():
 
     print("KTDB Link")
     print(link.shape)
+
+    # ==========================
+    # 샘플 출력
+    # ==========================
+    print("\n========== NODE SAMPLE ==========")
+    print(node[["NODE_ID", "NODE_NAME", "geometry"]].head(10))
+
+    print("\n========== LINK SAMPLE ==========")
+    print(link[["LINK_ID", "F_NODE", "T_NODE", "geometry"]].head(10))
 
     return node, link
 
