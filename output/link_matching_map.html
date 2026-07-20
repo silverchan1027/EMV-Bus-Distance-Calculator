@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_ee8363eb0131828a534e6acf398560f4 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_ee8363eb0131828a534e6acf398560f4" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_ee8363eb0131828a534e6acf398560f4 = L.map(
+                "map_ee8363eb0131828a534e6acf398560f4",
+                {
+                    center: [37.506418629504665, 126.8987081151069],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 16,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+            L.control.scale().addTo(map_ee8363eb0131828a534e6acf398560f4);
+
+            
+
+        
+    
+            var tile_layer_17ec79da0a9aa8988c6f90f1bbf824e4 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_17ec79da0a9aa8988c6f90f1bbf824e4.addTo(map_ee8363eb0131828a534e6acf398560f4);
+        
+    
+            var feature_group_ce698db5dcb2abf1627913548eac52d0 = L.featureGroup(
+                {
+}
+            );
+        
+    
+        function geo_json_bc5f09d62fc03c070c09aa322d9ce727_styler(feature) {
+            switch(feature.id) {
+                default:
+                    return {"opacity": 0.85, "weight": 6};
+            }
+        }
+
+        function geo_json_bc5f09d62fc03c070c09aa322d9ce727_onEachFeature(feature, layer) {
+
+            layer.on({
+            });
+        };
+        var geo_json_bc5f09d62fc03c070c09aa322d9ce727 = L.geoJson(null, {
+                onEachFeature: geo_json_bc5f09d62fc03c070c09aa322d9ce727_onEachFeature,
+            
+                style: geo_json_bc5f09d62fc03c070c09aa322d9ce727_styler,
+            ...{
+}
+        });
+
+        function geo_json_bc5f09d62fc03c070c09aa322d9ce727_add (data) {
+            geo_json_bc5f09d62fc03c070c09aa322d9ce727
+                .addData(data);
+        }
+            geo_json_bc5f09d62fc03c070c09aa322d9ce727_add({"features": [{"geometry": {"coordinates": [[126.90295495118, 37.500939989588275], [126.90248495150445, 37.50133278581394], [126.90152718499301, 37.50215344556342], [126.90056482335227, 37.502978016575526]], "type": "LineString"}, "id": "0", "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+            geo_json_bc5f09d62fc03c070c09aa322d9ce727.bindTooltip(
+                `<div>
+                     LINK_ID: 1180009702 / 대방천로
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+        var popup_f2b9426f5a322404057e67fbcb438a28 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_cbdf7f8d6b37ebf386bec685861e10dd = $(`<div id="html_cbdf7f8d6b37ebf386bec685861e10dd" style="width: 100.0%; height: 100.0%;"><b>KTDB Link</b><br>LINK_ID: 1180009702<br>F_NODE: 1180314200<br>T_NODE: 1180015402<br>LENGTH: 309.567798873202 m<br>ROAD_NAME: 대방천로</div>`)[0];
+                popup_f2b9426f5a322404057e67fbcb438a28.setContent(html_cbdf7f8d6b37ebf386bec685861e10dd);
+            
+        
+
+        geo_json_bc5f09d62fc03c070c09aa322d9ce727.bindPopup(popup_f2b9426f5a322404057e67fbcb438a28)
+        ;
+
+        
+    
+    
+            geo_json_bc5f09d62fc03c070c09aa322d9ce727.addTo(feature_group_ce698db5dcb2abf1627913548eac52d0);
+        
+    
+        function geo_json_79df8514c79c130b039413d744b2abfc_styler(feature) {
+            switch(feature.id) {
+                default:
+                    return {"opacity": 0.85, "weight": 6};
+            }
+        }
+
+        function geo_json_79df8514c79c130b039413d744b2abfc_onEachFeature(feature, layer) {
+
+            layer.on({
+            });
+        };
+        var geo_json_79df8514c79c130b039413d744b2abfc = L.geoJson(null, {
+                onEachFeature: geo_json_79df8514c79c130b039413d744b2abfc_onEachFeature,
+            
+                style: geo_json_79df8514c79c130b039413d744b2abfc_styler,
+            ...{
+}
+        });
+
+        function geo_json_79df8514c79c130b039413d744b2abfc_add (data) {
+            geo_json_79df8514c79c130b039413d744b2abfc
+                .addData(data);
+        }
+            geo_json_79df8514c79c130b039413d744b2abfc_add({"features": [{"geometry": {"coordinates": [[126.89919696903335, 37.5057156274913], [126.90009953969833, 37.50610969796509]], "type": "LineString"}, "id": "0", "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+            geo_json_79df8514c79c130b039413d744b2abfc.bindTooltip(
+                `<div>
+                     LINK_ID: 1180012102 / 도신로
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+        var popup_92b30e5719e0c9730bb3857ed628da3d = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_04db53bd3cd546f3de55401c7f4c84bd = $(`<div id="html_04db53bd3cd546f3de55401c7f4c84bd" style="width: 100.0%; height: 100.0%;"><b>KTDB Link</b><br>LINK_ID: 1180012102<br>F_NODE: 1180017502<br>T_NODE: 1180304800<br>LENGTH: 91.00321674905 m<br>ROAD_NAME: 도신로</div>`)[0];
+                popup_92b30e5719e0c9730bb3857ed628da3d.setContent(html_04db53bd3cd546f3de55401c7f4c84bd);
+            
+        
+
+        geo_json_79df8514c79c130b039413d744b2abfc.bindPopup(popup_92b30e5719e0c9730bb3857ed628da3d)
+        ;
+
+        
+    
+    
+            geo_json_79df8514c79c130b039413d744b2abfc.addTo(feature_group_ce698db5dcb2abf1627913548eac52d0);
+        
+    
+        function geo_json_0d52356a2547b418706f1649fe2df943_styler(feature) {
+            switch(feature.id) {
+                default:
+                    return {"opacity": 0.85, "weight": 6};
+            }
+        }
+
+        function geo_json_0d52356a2547b418706f1649fe2df943_onEachFeature(feature, layer) {
+
+            layer.on({
+            });
+        };
+        var geo_json_0d52356a2547b418706f1649fe2df943 = L.geoJson(null, {
+                onEachFeature: geo_json_0d52356a2547b418706f1649fe2df943_onEachFeature,
+            
+                style: geo_json_0d52356a2547b418706f1649fe2df943_styler,
+            ...{
+}
+        });
+
+        function geo_json_0d52356a2547b418706f1649fe2df943_add (data) {
+            geo_json_0d52356a2547b418706f1649fe2df943
+                .addData(data);
+        }
+            geo_json_0d52356a2547b418706f1649fe2df943_add({"features": [{"geometry": {"coordinates": [[126.89437047583559, 37.511647565050254], [126.8945831827577, 37.51125553531566], [126.894583423205, 37.51125511169243], [126.89475835665651, 37.510946910230516], [126.8948708020571, 37.510747017191456]], "type": "LineString"}, "id": "0", "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+            geo_json_0d52356a2547b418706f1649fe2df943.bindTooltip(
+                `<div>
+                     LINK_ID: 1180126201 / 경인로78길
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+        var popup_50362e24daca740a3e9feb2f99403195 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_817e628cec9dbf5bfae80fa2fa353195 = $(`<div id="html_817e628cec9dbf5bfae80fa2fa353195" style="width: 100.0%; height: 100.0%;"><b>KTDB Link</b><br>LINK_ID: 1180126201<br>F_NODE: 1180302200<br>T_NODE: 1180070002<br>LENGTH: 109.30386781411 m<br>ROAD_NAME: 경인로78길</div>`)[0];
+                popup_50362e24daca740a3e9feb2f99403195.setContent(html_817e628cec9dbf5bfae80fa2fa353195);
+            
+        
+
+        geo_json_0d52356a2547b418706f1649fe2df943.bindPopup(popup_50362e24daca740a3e9feb2f99403195)
+        ;
+
+        
+    
+    
+            geo_json_0d52356a2547b418706f1649fe2df943.addTo(feature_group_ce698db5dcb2abf1627913548eac52d0);
+        
+    
+            feature_group_ce698db5dcb2abf1627913548eac52d0.addTo(map_ee8363eb0131828a534e6acf398560f4);
+        
+    
+            var feature_group_118ae796b96bc82bfe8caedd376a15b1 = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var marker_69255566f385e222de676a5cabcb085b = L.marker(
+                [37.50207564321349, 126.90205038003329],
+                {
+}
+            ).addTo(feature_group_118ae796b96bc82bfe8caedd376a15b1);
+        
+    
+            var icon_6075db52a6df7f3997fc3f5a7fe8dc67 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "bus",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_604a3fa45f1de78083d54eb4112c5668 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_2fa7f322805835a2f1cb127679b05c75 = $(`<div id="html_2fa7f322805835a2f1cb127679b05c75" style="width: 100.0%; height: 100.0%;"><b>성락교회</b><br>정류장순서: 68<br>정류장아이디: 118000150<br>매칭 LINK_ID: 1180009702<br>F_NODE: 1180314200<br>T_NODE: 1180015402<br>대표 NODE: 1180314200<br>선택 구분: F_NODE<br>대표 NODE 거리: 149.28 m<br>도로명: 대방천로<br>Link 거리: 28.0 m</div>`)[0];
+                popup_604a3fa45f1de78083d54eb4112c5668.setContent(html_2fa7f322805835a2f1cb127679b05c75);
+            
+        
+
+        marker_69255566f385e222de676a5cabcb085b.bindPopup(popup_604a3fa45f1de78083d54eb4112c5668)
+        ;
+
+        
+    
+    
+            marker_69255566f385e222de676a5cabcb085b.bindTooltip(
+                `<div>
+                     68번 성락교회
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_69255566f385e222de676a5cabcb085b.setIcon(icon_6075db52a6df7f3997fc3f5a7fe8dc67);
+            
+    
+            var marker_d3cbad5402ac482d4c6176ba9d976737 = L.marker(
+                [37.50566857017701, 126.89956883705203],
+                {
+}
+            ).addTo(feature_group_118ae796b96bc82bfe8caedd376a15b1);
+        
+    
+            var icon_e92ce1b9b70e169895a4bfc5edf75d6d = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "bus",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_57f337dd6f26cda04d2ac01be43a19ca = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_5fbca82fa696e2530cb70e7f7ae45657 = $(`<div id="html_5fbca82fa696e2530cb70e7f7ae45657" style="width: 100.0%; height: 100.0%;"><b>도림마을금고</b><br>정류장순서: 69<br>정류장아이디: 118000101<br>매칭 LINK_ID: 1180012102<br>F_NODE: 1180017502<br>T_NODE: 1180304800<br>대표 NODE: 1180017502<br>선택 구분: F_NODE<br>대표 NODE 거리: 33.29 m<br>도로명: 도신로<br>Link 거리: 20.38 m</div>`)[0];
+                popup_57f337dd6f26cda04d2ac01be43a19ca.setContent(html_5fbca82fa696e2530cb70e7f7ae45657);
+            
+        
+
+        marker_d3cbad5402ac482d4c6176ba9d976737.bindPopup(popup_57f337dd6f26cda04d2ac01be43a19ca)
+        ;
+
+        
+    
+    
+            marker_d3cbad5402ac482d4c6176ba9d976737.bindTooltip(
+                `<div>
+                     69번 도림마을금고
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_d3cbad5402ac482d4c6176ba9d976737.setIcon(icon_e92ce1b9b70e169895a4bfc5edf75d6d);
+            
+    
+            var marker_3a0d201c7c834e7c55dca7fb4e563748 = L.marker(
+                [37.5115116751235, 126.89450512823538],
+                {
+}
+            ).addTo(feature_group_118ae796b96bc82bfe8caedd376a15b1);
+        
+    
+            var icon_74069b3e4345fa3af1149edc30b9a75d = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "bus",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_174ec2e4933af632108b1753582dafee = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_df4e4cb94761756b6288ee6a4bc3c0ee = $(`<div id="html_df4e4cb94761756b6288ee6a4bc3c0ee" style="width: 100.0%; height: 100.0%;"><b>문래우체국.문래예술공단</b><br>정류장순서: 70<br>정류장아이디: 118000204<br>매칭 LINK_ID: 1180126201<br>F_NODE: 1180302200<br>T_NODE: 1180070002<br>대표 NODE: 1180302200<br>선택 구분: F_NODE<br>대표 NODE 거리: 19.21 m<br>도로명: 경인로78길<br>Link 거리: 4.94 m</div>`)[0];
+                popup_174ec2e4933af632108b1753582dafee.setContent(html_df4e4cb94761756b6288ee6a4bc3c0ee);
+            
+        
+
+        marker_3a0d201c7c834e7c55dca7fb4e563748.bindPopup(popup_174ec2e4933af632108b1753582dafee)
+        ;
+
+        
+    
+    
+            marker_3a0d201c7c834e7c55dca7fb4e563748.bindTooltip(
+                `<div>
+                     70번 문래우체국.문래예술공단
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_3a0d201c7c834e7c55dca7fb4e563748.setIcon(icon_74069b3e4345fa3af1149edc30b9a75d);
+            
+    
+            feature_group_118ae796b96bc82bfe8caedd376a15b1.addTo(map_ee8363eb0131828a534e6acf398560f4);
+        
+    
+            map_ee8363eb0131828a534e6acf398560f4.fitBounds(
+                [[37.500939989588275, 126.89437047583559], [37.511647565050254, 126.90295495118]],
+                {}
+            );
+        
+    
+            var layer_control_620b5e13c42e287e717d03e01306ffae_layers = {
+                base_layers : {
+                    "openstreetmap" : tile_layer_17ec79da0a9aa8988c6f90f1bbf824e4,
+                },
+                overlays :  {
+                    "\ub9e4\uce6d\ub41c KTDB Link" : feature_group_ce698db5dcb2abf1627913548eac52d0,
+                    "BMS \uc815\ub958\uc7a5" : feature_group_118ae796b96bc82bfe8caedd376a15b1,
+                },
+            };
+            let layer_control_620b5e13c42e287e717d03e01306ffae = L.control.layers(
+                layer_control_620b5e13c42e287e717d03e01306ffae_layers.base_layers,
+                layer_control_620b5e13c42e287e717d03e01306ffae_layers.overlays,
+                {
+  "position": "topright",
+  "collapsed": true,
+  "autoZIndex": true,
+}
+            ).addTo(map_ee8363eb0131828a534e6acf398560f4);
+
+        
+</script>
+</html>
