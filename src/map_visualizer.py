@@ -4,15 +4,20 @@ import folium
 import geopandas as gpd
 import pandas as pd
 
+from path_visualizer import (
+    add_shortest_path_layer,
+    get_shortest_path_bounds,
+)
+
 
 def create_link_matching_map(
     nearest_link_df: pd.DataFrame,
     link_gdf: gpd.GeoDataFrame,
+    node_gdf: gpd.GeoDataFrame | None = None,
+    shortest_path_df: pd.DataFrame | None = None,
     output_path: str = "output/link_matching_map.html",
 ) -> str:
-    """
-    BMS 정류장과 매칭된 KTDB Link를 Folium 지도에 표시한다.
-    """
+    """BMS 정류장, 매칭된 KTDB Link, Dijkstra 최단경로를 Folium 지도에 표시한다."""
 
     if nearest_link_df.empty:
         raise ValueError("지도에 표시할 최근접 Link 결과가 없습니다.")
@@ -38,15 +43,13 @@ def create_link_matching_map(
     ]
 
     missing_columns = [
-        column
-        for column in required_columns
-        if column not in nearest_link_df.columns
+        c for c in required_columns
+        if c not in nearest_link_df.columns
     ]
 
     if missing_columns:
         raise KeyError(
-            "최근접 Link 결과에 필요한 컬럼이 없습니다: "
-            f"{missing_columns}"
+            f"최근접 Link 결과에 필요한 컬럼이 없습니다: {missing_columns}"
         )
 
     stop_gdf = gpd.GeoDataFrame(
@@ -61,15 +64,11 @@ def create_link_matching_map(
     stop_wgs84 = stop_gdf.to_crs(epsg=4326)
 
     target_link_ids = set(
-        nearest_link_df["LINK_ID"]
-        .dropna()
-        .astype(str)
+        nearest_link_df["LINK_ID"].dropna().astype(str)
     )
 
     matched_links = link_gdf[
-        link_gdf["LINK_ID"]
-        .astype(str)
-        .isin(target_link_ids)
+        link_gdf["LINK_ID"].astype(str).isin(target_link_ids)
     ].copy()
 
     if matched_links.empty:
@@ -105,14 +104,8 @@ def create_link_matching_map(
 
         folium.GeoJson(
             data=link.geometry.__geo_interface__,
-            tooltip=(
-                f"LINK_ID: {link['LINK_ID']} / "
-                f"{link.get('ROAD_NAME', '')}"
-            ),
-            popup=folium.Popup(
-                popup_text,
-                max_width=350,
-            ),
+            tooltip=f"LINK_ID: {link['LINK_ID']}",
+            popup=folium.Popup(popup_text, max_width=350),
             style_function=lambda feature: {
                 "weight": 6,
                 "opacity": 0.85,
@@ -120,6 +113,13 @@ def create_link_matching_map(
         ).add_to(link_layer)
 
     link_layer.add_to(map_object)
+
+    if shortest_path_df is not None and not shortest_path_df.empty:
+        add_shortest_path_layer(
+            map_object,
+            shortest_path_df,
+            link_gdf,
+        )
 
     stop_layer = folium.FeatureGroup(
         name="BMS 정류장",
@@ -129,6 +129,7 @@ def create_link_matching_map(
     for _, stop in stop_wgs84.iterrows():
 
         representative_text = ""
+
         if "대표_NODE" in stop.index:
             representative_text = (
                 f"대표 NODE: {stop['대표_NODE']}<br>"
@@ -149,34 +150,32 @@ def create_link_matching_map(
         )
 
         folium.Marker(
-            location=[
-                stop.geometry.y,
-                stop.geometry.x,
-            ],
-            tooltip=(
-                f"{stop['정류장순서']}번 "
-                f"{stop['정류장명']}"
-            ),
-            popup=folium.Popup(
-                popup_text,
-                max_width=350,
-            ),
-            icon=folium.Icon(
-                icon="bus",
-                prefix="fa",
-            ),
+            location=[stop.geometry.y, stop.geometry.x],
+            tooltip=f"{stop['정류장순서']}번 {stop['정류장명']}",
+            popup=folium.Popup(popup_text, max_width=350),
+            icon=folium.Icon(icon="bus", prefix="fa"),
         ).add_to(stop_layer)
 
     stop_layer.add_to(map_object)
 
-    min_x, min_y, max_x, max_y = matched_links_wgs84.total_bounds
+    bounds = None
 
-    map_object.fit_bounds(
-        [
-            [min_y, min_x],
-            [max_y, max_x],
-        ]
-    )
+    if shortest_path_df is not None and not shortest_path_df.empty:
+        bounds = get_shortest_path_bounds(
+            shortest_path_df,
+            link_gdf,
+        )
+
+    if bounds is not None:
+        map_object.fit_bounds(bounds)
+    else:
+        min_x, min_y, max_x, max_y = matched_links_wgs84.total_bounds
+        map_object.fit_bounds(
+            [
+                [min_y, min_x],
+                [max_y, max_x],
+            ]
+        )
 
     folium.LayerControl().add_to(map_object)
 

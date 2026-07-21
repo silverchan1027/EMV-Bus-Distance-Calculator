@@ -9,6 +9,7 @@ from matcher import (
 from map_visualizer import create_link_matching_map
 from graph_builder import build_graph
 from shortest_path import calculate_shortest_paths
+from distance_comparison import compare_bms_ktdb_distances
 
 # =====================================================
 # Pandas 출력 옵션
@@ -203,10 +204,18 @@ def main() -> None:
     matched_stop_df,
     )
 
+    comparison_result = compare_bms_ktdb_distances(
+        selected_stops,
+        distance_result,
+        output_path="output/distance_comparison.csv",
+    )
+
     # 12. 지도 생성
     map_file_path = create_link_matching_map(
         matched_stop_df,
         link_gdf,
+        node_gdf=node_gdf,
+        shortest_path_df=distance_result,
         output_path="output/link_matching_map.html",
     )
 
