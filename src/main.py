@@ -2,48 +2,41 @@ import pandas as pd
 
 from load_data import load_bms_data, load_ktdb_data
 from matcher import (
+    assign_link_projection,
     assign_representative_node,
     check_bms_link_ids,
     find_nearest_link,
 )
 from map_visualizer import create_link_matching_map
 from graph_builder import build_graph
-from shortest_path import calculate_shortest_paths
+from shortest_path import (
+    calculate_projected_shortest_paths,
+    calculate_shortest_paths,
+)
 from distance_comparison import compare_bms_ktdb_distances
+from path_export import export_selected_path_links
 
-# =====================================================
-# Pandas 출력 옵션
-# =====================================================
 pd.set_option("display.max_columns", None)
 pd.set_option("display.width", 240)
 pd.set_option("display.max_colwidth", 50)
 pd.set_option("display.expand_frame_repr", False)
 
 
-# =====================================================
-# 테스트 조건
-# =====================================================
 TARGET_ROUTE_ID = 208000016
 START_SEQUENCE = 68
 STOP_COUNT = 3
 
 
-# =====================================================
-# 메인 함수
-# =====================================================
 def main() -> None:
 
     print("=" * 80)
     print("국토부 Node-Link 기반 버스 정류장 거리 계산")
     print("=" * 80)
 
-    # 1. BMS 데이터 읽기
     datasets = load_bms_data()
-
     route_stop_df = datasets["route_stop"]
     stop_history_df = datasets["stop_history"]
 
-    # 2. KTDB Node-Link 읽기
     node_gdf, link_gdf = load_ktdb_data()
 
     print("\n========== KTDB NODE 정보 ==========")
@@ -58,7 +51,6 @@ def main() -> None:
     print(f"전체 좌표 범위: {link_gdf.total_bounds}")
     print(f"컬럼: {link_gdf.columns.tolist()}")
 
-    # 3. 대상 노선 선택
     selected_route = (
         route_stop_df[
             route_stop_df["노선아이디"] == TARGET_ROUTE_ID
@@ -92,7 +84,6 @@ def main() -> None:
 
     print(route_preview.to_string(index=False))
 
-    # 4. 연속된 정류장 선택
     selected_stops = (
         selected_route[
             selected_route["정류장순서"].between(
@@ -110,7 +101,6 @@ def main() -> None:
         )
         return
 
-    # 5. 정류장 상세정보 준비
     stop_info = (
         stop_history_df[
             [
@@ -127,7 +117,6 @@ def main() -> None:
         )
     )
 
-    # 6. 노선 정류장과 상세정보 결합
     selected_stops = (
         selected_stops
         .merge(
@@ -152,7 +141,6 @@ def main() -> None:
         errors="coerce",
     )
 
-    # 7. 선택한 정류장 출력
     selected_stop_result = selected_stops[
         [
             "정류장순서",
@@ -167,20 +155,18 @@ def main() -> None:
         ]
     ]
 
-    print("\n")
+    print()
     print("=" * 110)
     print("선택한 연속 정류장")
     print("=" * 110)
     print(selected_stop_result.to_string(index=False))
     print("=" * 110)
 
-    # 8. BMS LINK_ID와 KTDB LINK_ID 비교
     check_bms_link_ids(
         selected_stops,
         link_gdf,
     )
 
-    # 9. 정류장별 최근접 KTDB LINK 검색
     nearest_link_df = find_nearest_link(
         selected_stops,
         link_gdf,
@@ -190,40 +176,75 @@ def main() -> None:
         print("최근접 KTDB LINK를 찾지 못했습니다.")
         return
 
-    # 10. F_NODE와 T_NODE 중 대표 NODE 선택
-    matched_stop_df = assign_representative_node(
+    projected_stop_df = assign_link_projection(
         nearest_link_df,
+    )
+
+    if projected_stop_df.empty:
+        print("정류장 LINK 내부 투영 결과가 비어 있습니다.")
+        return
+
+    matched_stop_df = assign_representative_node(
+        projected_stop_df,
         node_gdf,
     )
 
-    # 11. KTDB 도로 그래프 생성
     graph = build_graph(link_gdf)
 
-    distance_result = calculate_shortest_paths(
-    graph,
-    matched_stop_df,
+    representative_distance_result = calculate_shortest_paths(
+        graph,
+        matched_stop_df,
     )
 
-    comparison_result = compare_bms_ktdb_distances(
+    selected_path_link_result = export_selected_path_links(
+    projected_distance_result,
+    link_gdf,
+    output_path="output/selected_path_links.csv",
+    )
+
+    if selected_path_link_result.empty:
+        print("선택 경로 Link 분석 결과가 비어 있습니다.")
+
+    projected_distance_result = calculate_projected_shortest_paths(
+        graph,
+        projected_stop_df,
+    )
+
+    representative_comparison_result = compare_bms_ktdb_distances(
         selected_stops,
-        distance_result,
-        output_path="output/distance_comparison.csv",
+        representative_distance_result,
+        output_path="output/representative_distance_comparison.csv",
     )
 
-    # 12. 지도 생성
+    if representative_comparison_result.empty:
+        print("기존 대표 NODE 방식 거리 비교 결과가 비어 있습니다.")
+
+    projected_result_for_comparison = projected_distance_result.copy()
+    projected_result_for_comparison["도로거리(m)"] = (
+        projected_result_for_comparison["개선도로거리(m)"]
+    )
+
+    projected_comparison_result = compare_bms_ktdb_distances(
+        selected_stops,
+        projected_result_for_comparison,
+        output_path="output/projected_distance_comparison.csv",
+    )
+
+    if projected_comparison_result.empty:
+        print("개선된 투영 방식 거리 비교 결과가 비어 있습니다.")
+
     map_file_path = create_link_matching_map(
         matched_stop_df,
         link_gdf,
         node_gdf=node_gdf,
-        shortest_path_df=distance_result,
-        output_path="output/link_matching_map.html",
+        shortest_path_df=projected_distance_result,
+        output_path="output/projected_link_matching_map.html",
     )
 
     print("\n========== 지도 생성 완료 ==========")
     print(f"지도 파일: {map_file_path}")
 
-    # 13. 매칭 거리 점검
-    max_match_distance = matched_stop_df[
+    max_match_distance = projected_stop_df[
         "링크매칭거리_m"
     ].max()
 
@@ -239,8 +260,8 @@ def main() -> None:
             f"최대 Link 매칭 거리: {max_match_distance:.2f}m"
         )
         print(
-            "대표 NODE까지 선택되었습니다. "
-            "다음 단계에서 KTDB 도로 그래프를 생성할 수 있습니다."
+            "정류장의 Link 내부 투영점과 "
+            "F_NODE/T_NODE 방향 부분거리까지 계산되었습니다."
         )
 
     elif max_match_distance <= 100:
@@ -261,6 +282,20 @@ def main() -> None:
         print(
             "BMS_CRS가 EPSG:5181이 맞는지 추가 확인이 필요합니다."
         )
+
+    print("\n========== 실행 결과 파일 ==========")
+    print(
+        "기존 대표 NODE 비교 CSV: "
+        "output/representative_distance_comparison.csv"
+    )
+    print(
+        "개선 투영 방식 비교 CSV: "
+        "output/projected_distance_comparison.csv"
+    )
+    print(
+        "개선 투영 방식 지도: "
+        "output/projected_link_matching_map.html"
+    )
 
 
 if __name__ == "__main__":

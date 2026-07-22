@@ -3,12 +3,10 @@ from __future__ import annotations
 import folium
 import geopandas as gpd
 import pandas as pd
+from shapely.geometry import Point
 
 
 def _normalize_node_id(value) -> str:
-    """
-    NODE ID 자료형 차이를 피하기 위해 문자열로 정규화한다.
-    """
     if pd.isna(value):
         return ""
 
@@ -24,22 +22,6 @@ def find_path_links(
     path_nodes: list,
     link_gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
-    """
-    최단경로 NODE 목록을 이용하여 각 NODE 쌍에 대응하는
-    KTDB Link geometry를 순서대로 찾는다.
-
-    Parameters
-    ----------
-    path_nodes : list
-        Dijkstra 최단경로 NODE 목록
-    link_gdf : GeoDataFrame
-        KTDB Link 데이터
-
-    Returns
-    -------
-    GeoDataFrame
-        최단경로 순서대로 정렬된 KTDB Link 목록
-    """
 
     if not path_nodes or len(path_nodes) < 2:
         return gpd.GeoDataFrame(
@@ -102,11 +84,7 @@ def find_path_links(
         lookup_columns.insert(4, "ROAD_NAME")
 
     links = links[lookup_columns].dropna(
-        subset=[
-            "F_NODE",
-            "T_NODE",
-            "geometry",
-        ]
+        subset=["F_NODE", "T_NODE", "geometry"]
     )
 
     selected_rows = []
@@ -146,7 +124,6 @@ def find_path_links(
         )
 
         selected = candidates.iloc[0].copy()
-
         selected["PATH_ORDER"] = order
         selected["PATH_FROM_NODE"] = from_node
         selected["PATH_TO_NODE"] = to_node
@@ -159,11 +136,135 @@ def find_path_links(
         crs=link_gdf.crs,
     )
 
-    result = result.sort_values(
+    return result.sort_values(
         "PATH_ORDER"
     ).reset_index(drop=True)
 
-    return result
+
+def _get_node_point_from_link(
+    link_row: pd.Series,
+    node_id,
+) -> Point:
+    """
+    Link geometry 시작점=F_NODE, 끝점=T_NODE라고 보고
+    지정 NODE의 좌표를 반환한다.
+    """
+
+    geometry = link_row["geometry"]
+
+    if geometry is None or geometry.is_empty:
+        raise ValueError(
+            f"LINK geometry가 비어 있습니다: {link_row['LINK_ID']}"
+        )
+
+    coordinates = list(geometry.coords)
+
+    node_key = _normalize_node_id(node_id)
+    f_node_key = _normalize_node_id(link_row["F_NODE"])
+    t_node_key = _normalize_node_id(link_row["T_NODE"])
+
+    if node_key == f_node_key:
+        return Point(coordinates[0])
+
+    if node_key == t_node_key:
+        return Point(coordinates[-1])
+
+    raise ValueError(
+        "경로 NODE가 Link의 F_NODE/T_NODE와 일치하지 않습니다: "
+        f"LINK_ID={link_row['LINK_ID']}, NODE_ID={node_id}"
+    )
+
+
+def build_path_node_points(
+    path_nodes: list,
+    path_links: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """
+    경로 NODE 목록을 번호가 붙은 Point GeoDataFrame으로 변환한다.
+    """
+
+    node_rows = []
+
+    for node_order, node_id in enumerate(path_nodes):
+
+        if node_order == 0:
+            related_link = path_links.iloc[0]
+
+        elif node_order == len(path_nodes) - 1:
+            related_link = path_links.iloc[-1]
+
+        else:
+            related_link = path_links.iloc[node_order - 1]
+
+        node_point = _get_node_point_from_link(
+            related_link,
+            node_id,
+        )
+
+        if node_order == 0:
+            node_role = "출발"
+
+        elif node_order == len(path_nodes) - 1:
+            node_role = "도착"
+
+        else:
+            node_role = "경유"
+
+        node_rows.append(
+            {
+                "DISPLAY_ORDER": node_order + 1,
+                "NODE_ID": node_id,
+                "NODE_ROLE": node_role,
+                "geometry": node_point,
+            }
+        )
+
+    return gpd.GeoDataFrame(
+        node_rows,
+        geometry="geometry",
+        crs=path_links.crs,
+    )
+
+
+def _create_numbered_node_icon(
+    display_order: int,
+    node_role: str,
+) -> folium.DivIcon:
+
+    if node_role == "출발":
+        background = "#198754"
+        text_color = "#ffffff"
+
+    elif node_role == "도착":
+        background = "#dc3545"
+        text_color = "#ffffff"
+
+    else:
+        background = "#ffffff"
+        text_color = "#111111"
+
+    html = f"""
+    <div style="
+        width:28px;
+        height:28px;
+        border-radius:50%;
+        background:{background};
+        color:{text_color};
+        border:2px solid #111111;
+        font-size:13px;
+        font-weight:700;
+        text-align:center;
+        line-height:24px;
+        box-sizing:border-box;
+        box-shadow:0 1px 4px rgba(0,0,0,0.45);
+    ">{display_order}</div>
+    """
+
+    return folium.DivIcon(
+        html=html,
+        icon_size=(28, 28),
+        icon_anchor=(14, 14),
+    )
 
 
 def add_shortest_path_layer(
@@ -172,25 +273,19 @@ def add_shortest_path_layer(
     link_gdf: gpd.GeoDataFrame,
 ) -> folium.FeatureGroup:
     """
-    Dijkstra 최단경로를 실제 KTDB Link geometry로 지도에 추가한다.
-
-    Parameters
-    ----------
-    map_object : folium.Map
-        최단경로를 추가할 Folium 지도
-    shortest_path_df : DataFrame
-        calculate_shortest_paths() 결과
-    link_gdf : GeoDataFrame
-        KTDB Link 데이터
-
-    Returns
-    -------
-    folium.FeatureGroup
-        생성된 최단경로 레이어
+    Dijkstra 경로 Link와 모든 경로 NODE 번호를 지도에 표시한다.
     """
 
     if shortest_path_df.empty:
         raise ValueError("최단경로 결과가 비어 있습니다.")
+
+    path_df = shortest_path_df.copy()
+
+    if (
+        "도로거리(m)" not in path_df.columns
+        and "개선도로거리(m)" in path_df.columns
+    ):
+        path_df["도로거리(m)"] = path_df["개선도로거리(m)"]
 
     required_columns = [
         "출발정류장",
@@ -202,7 +297,7 @@ def add_shortest_path_layer(
     missing_columns = [
         column
         for column in required_columns
-        if column not in shortest_path_df.columns
+        if column not in path_df.columns
     ]
 
     if missing_columns:
@@ -215,7 +310,15 @@ def add_shortest_path_layer(
         show=True,
     )
 
-    for _, path_row in shortest_path_df.iterrows():
+    node_layer = folium.FeatureGroup(
+        name="Dijkstra 경로 NODE 번호",
+        show=True,
+    )
+
+    for section_index, (_, path_row) in enumerate(
+        path_df.iterrows(),
+        start=1,
+    ):
         path_nodes = path_row["경로NODE"]
 
         if not isinstance(path_nodes, list) or len(path_nodes) < 2:
@@ -236,7 +339,18 @@ def add_shortest_path_layer(
             f"{path_row['도착정류장']}"
         )
 
+        path_type_text = ""
+
+        if (
+            "경로유형" in path_row.index
+            and pd.notna(path_row["경로유형"])
+        ):
+            path_type_text = (
+                f"선택 조합: {path_row['경로유형']}<br>"
+            )
+
         for _, link in path_links_wgs84.iterrows():
+
             road_name = link.get("ROAD_NAME", "")
             road_name_text = (
                 ""
@@ -246,7 +360,9 @@ def add_shortest_path_layer(
 
             popup_text = (
                 f"<b>Dijkstra 최단경로</b><br>"
+                f"구간 번호: {section_index}<br>"
                 f"구간: {section_title}<br>"
+                f"{path_type_text}"
                 f"경로 순서: {int(link['PATH_ORDER']) + 1}<br>"
                 f"LINK_ID: {link['LINK_ID']}<br>"
                 f"F_NODE: {link['F_NODE']}<br>"
@@ -256,26 +372,64 @@ def add_shortest_path_layer(
                 f"구간 최단거리: {path_row['도로거리(m)']} m"
             )
 
-            tooltip_text = (
-                f"{section_title} / "
-                f"LINK_ID {link['LINK_ID']} / "
-                f"{road_name_text}"
-            )
-
             folium.GeoJson(
                 data=link.geometry.__geo_interface__,
-                tooltip=tooltip_text,
+                tooltip=(
+                    f"[구간 {section_index}] {section_title} / "
+                    f"LINK_ID {link['LINK_ID']}"
+                ),
                 popup=folium.Popup(
                     popup_text,
-                    max_width=380,
+                    max_width=400,
                 ),
                 style_function=lambda feature: {
+                    "color": "#0d6efd",
                     "weight": 8,
                     "opacity": 0.9,
                 },
             ).add_to(path_layer)
 
+        path_node_points = build_path_node_points(
+            path_nodes,
+            path_links,
+        ).to_crs(epsg=4326)
+
+        for _, node_row in path_node_points.iterrows():
+
+            node_popup = (
+                f"<b>Dijkstra 경로 NODE</b><br>"
+                f"구간 번호: {section_index}<br>"
+                f"구간: {section_title}<br>"
+                f"경로 내 순서: {node_row['DISPLAY_ORDER']} / "
+                f"{len(path_nodes)}<br>"
+                f"NODE 역할: {node_row['NODE_ROLE']}<br>"
+                f"NODE_ID: {node_row['NODE_ID']}<br>"
+                f"{path_type_text}"
+                f"구간 최단거리: {path_row['도로거리(m)']} m"
+            )
+
+            folium.Marker(
+                location=[
+                    node_row.geometry.y,
+                    node_row.geometry.x,
+                ],
+                tooltip=(
+                    f"[구간 {section_index}] "
+                    f"{int(node_row['DISPLAY_ORDER'])}번 NODE / "
+                    f"{node_row['NODE_ID']}"
+                ),
+                popup=folium.Popup(
+                    node_popup,
+                    max_width=400,
+                ),
+                icon=_create_numbered_node_icon(
+                    int(node_row["DISPLAY_ORDER"]),
+                    str(node_row["NODE_ROLE"]),
+                ),
+            ).add_to(node_layer)
+
     path_layer.add_to(map_object)
+    node_layer.add_to(map_object)
 
     return path_layer
 
@@ -284,16 +438,19 @@ def get_shortest_path_bounds(
     shortest_path_df: pd.DataFrame,
     link_gdf: gpd.GeoDataFrame,
 ) -> list[list[float]] | None:
-    """
-    최단경로 전체를 포함하는 Folium fit_bounds용 범위를 반환한다.
-    """
 
     if shortest_path_df.empty:
         return None
 
+    if "경로NODE" not in shortest_path_df.columns:
+        raise KeyError(
+            "최단경로 결과에 '경로NODE' 컬럼이 없습니다."
+        )
+
     all_path_links = []
 
     for path_nodes in shortest_path_df["경로NODE"]:
+
         if not isinstance(path_nodes, list) or len(path_nodes) < 2:
             continue
 
@@ -319,7 +476,9 @@ def get_shortest_path_bounds(
 
     combined_wgs84 = combined.to_crs(epsg=4326)
 
-    min_x, min_y, max_x, max_y = combined_wgs84.total_bounds
+    min_x, min_y, max_x, max_y = (
+        combined_wgs84.total_bounds
+    )
 
     return [
         [min_y, min_x],
